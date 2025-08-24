@@ -518,16 +518,22 @@ body {
 .loading-spinner {
   text-align: center;
   padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   border: 4px solid #f3f3f3;
   border-top: 4px solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .spinner-small {
@@ -539,9 +545,72 @@ body {
   animation: spin 1s linear infinite;
 }
 
+.loading-dots {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #667eea;
+  animation: loading-dot 1.4s ease-in-out infinite both;
+}
+
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes loading-dot {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Enhanced Loading States */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.loading-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 300px;
+}
+
+.loading-card h3 {
+  margin-bottom: 1rem;
+  color: #2d3748;
+}
+
+.loading-card p {
+  color: #718096;
+  margin-bottom: 1.5rem;
 }
 
 /* Dashboard */
@@ -595,11 +664,34 @@ body {
   margin-bottom: 0.25rem;
 }
 
+.principal-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .user-principal {
   font-family: 'Courier New', monospace;
   font-size: 0.9rem;
   color: #2d3748;
   font-weight: 500;
+}
+
+.copy-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.copy-btn:hover {
+  opacity: 1;
+  background: rgba(102, 126, 234, 0.1);
+  transform: scale(1.1);
 }
 
 .logout-btn {
@@ -737,12 +829,88 @@ body {
 
 /* Error message */
 .error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 1rem;
+  background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+  color: #c53030;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #fc8181;
+  box-shadow: 0 4px 12px rgba(197, 48, 48, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+.error-message::before {
+  content: "⚠️";
+  font-size: 1.2rem;
+}
+
+.error-message.success {
+  background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+  color: #22543d;
+  border: 1px solid #68d391;
+  box-shadow: 0 4px 12px rgba(34, 84, 61, 0.1);
+}
+
+.error-message.success::before {
+  content: "✅";
+}
+
+.error-message.info {
+  background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+  color: #2a4365;
+  border: 1px solid #63b3ed;
+  box-shadow: 0 4px 12px rgba(42, 67, 101, 0.1);
+}
+
+.error-message.info::before {
+  content: "ℹ️";
+}
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  background: white;
+  padding: 1rem 1.5rem;
   border-radius: 8px;
-  margin-bottom: 1rem;
-  border: 1px solid #f5c6cb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid;
+  min-width: 300px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.toast.success {
+  border-left-color: #48bb78;
+}
+
+.toast.error {
+  border-left-color: #f56565;
+}
+
+.toast.info {
+  border-left-color: #4299e1;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* Timeline section */
@@ -799,6 +967,10 @@ body {
   font-size: 1.3rem;
   margin-bottom: 0.5rem;
   color: #495057;
+}
+
+.empty-actions {
+  margin-top: 1.5rem;
 }
 
 /* Dweets list */

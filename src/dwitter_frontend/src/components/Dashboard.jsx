@@ -27,6 +27,14 @@ function Dashboard() {
       const client = await AuthClient.create();
       setAuthClient(client);
       
+      // Check if we have stored authentication state
+      const storedAuth = localStorage.getItem('orbit_auth');
+      if (storedAuth) {
+        const authData = JSON.parse(storedAuth);
+        setUserPrincipal({ toString: () => authData.principal });
+        return;
+      }
+      
       const isAuthenticated = await client.isAuthenticated();
       if (!isAuthenticated) {
         navigate('/auth');
@@ -82,6 +90,10 @@ function Dashboard() {
 
     try {
       await authClient.logout();
+      
+      // Clear stored authentication state
+      localStorage.removeItem('orbit_auth');
+      
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -98,12 +110,31 @@ function Dashboard() {
     return principalStr.slice(0, 8) + '...' + principalStr.slice(-8);
   };
 
+  const copyPrincipalToClipboard = async () => {
+    try {
+      const fullPrincipal = userPrincipal.toString();
+      await navigator.clipboard.writeText(fullPrincipal);
+      // You could add a toast notification here
+      console.log('Principal copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy principal:', err);
+    }
+  };
+
   if (!userPrincipal) {
     return (
       <div className="dashboard">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Loading...</p>
+        <div className="loading-overlay">
+          <div className="loading-card">
+            <div className="spinner"></div>
+            <h3>Initializing Orbit</h3>
+            <p>Setting up your secure connection...</p>
+            <div className="loading-dots">
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -121,7 +152,16 @@ function Dashboard() {
           <div className="header-right">
             <div className="user-info">
               <span className="user-label">Logged in as:</span>
-              <span className="user-principal">{formatPrincipal(userPrincipal)}</span>
+              <div className="principal-container">
+                <span className="user-principal">{formatPrincipal(userPrincipal)}</span>
+                <button 
+                  onClick={copyPrincipalToClipboard}
+                  className="copy-btn"
+                  title="Copy Principal ID"
+                >
+                  📋
+                </button>
+              </div>
             </div>
             <button onClick={handleLogout} className="logout-btn">
               Logout
@@ -163,6 +203,13 @@ function Dashboard() {
           </div>
         )}
 
+        {/* Success Message */}
+        {!error && dweets.length > 0 && (
+          <div className="error-message success">
+            Timeline loaded successfully! {dweets.length} dweet{dweets.length !== 1 ? 's' : ''} found.
+          </div>
+        )}
+
         {/* Dweets Timeline */}
         <section className="timeline-section">
           <div className="timeline-header">
@@ -180,9 +227,17 @@ function Dashboard() {
             <div className="loading">Loading dweets...</div>
           ) : dweets.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">📝</div>
-              <h3>No dweets yet</h3>
-              <p>Be the first to post a dweet and start the conversation!</p>
+              <div className="empty-icon">🚀</div>
+              <h3>Welcome to Orbit!</h3>
+              <p>You're the first one here! Post your first dweet to start the conversation.</p>
+              <div className="empty-actions">
+                <button 
+                  onClick={() => document.querySelector('.dweet-input').focus()}
+                  className="cta-btn primary"
+                >
+                  Write Your First Dweet
+                </button>
+              </div>
             </div>
           ) : (
             <div className="dweets-list">

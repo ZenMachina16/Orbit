@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AuthClient } from '@dfinity/auth-client';
 import { dwitter_backend } from 'declarations/dwitter_backend';
 
@@ -18,6 +18,16 @@ function AuthPage() {
     try {
       const client = await AuthClient.create();
       setAuthClient(client);
+      
+      // Check if we have stored authentication state
+      const storedAuth = localStorage.getItem('orbit_auth');
+      if (storedAuth) {
+        const authData = JSON.parse(storedAuth);
+        setIsAuthenticated(true);
+        setUserPrincipal({ toString: () => authData.principal });
+        navigate('/dashboard');
+        return;
+      }
       
       const isAuthenticated = await client.isAuthenticated();
       setIsAuthenticated(isAuthenticated);
@@ -42,12 +52,29 @@ function AuthPage() {
     try {
       setIsLoading(true);
       
-      // Start the login process
+      // For local development, use a mock authentication
+      if (process.env.DFX_NETWORK !== "ic") {
+        // Create a mock principal for local development
+        const mockPrincipal = "dtvkx-nqfcs-gvi6k-g7ti5-rwaqi-dqhdd-mg6tw-nye7j-2fevm-htgnp-nqe";
+        setUserPrincipal({ toString: () => mockPrincipal });
+        setIsAuthenticated(true);
+        
+        // Store authentication state in localStorage
+        localStorage.setItem('orbit_auth', JSON.stringify({
+          principal: mockPrincipal,
+          isAuthenticated: true,
+          timestamp: Date.now()
+        }));
+        
+        // Redirect immediately to dashboard
+        navigate('/dashboard');
+        return;
+      }
+      
+      // Start the login process for mainnet
       await new Promise((resolve, reject) => {
         authClient.login({
-          identityProvider: process.env.DFX_NETWORK === "ic" 
-            ? "https://identity.ic0.app" 
-            : `http://127.0.0.1:4943/?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai`,
+          identityProvider: "https://identity.ic0.app",
           onSuccess: () => {
             const identity = authClient.getIdentity();
             const principal = identity.getPrincipal();
@@ -76,6 +103,10 @@ function AuthPage() {
       await authClient.logout();
       setIsAuthenticated(false);
       setUserPrincipal(null);
+      
+      // Clear stored authentication state
+      localStorage.removeItem('orbit_auth');
+      
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -88,49 +119,29 @@ function AuthPage() {
     return principalStr.slice(0, 8) + '...' + principalStr.slice(-8);
   };
 
+
+
+  // Loading state
   if (isLoading) {
     return (
       <div className="auth-page">
         <div className="auth-container">
-          <div className="loading-spinner">
+          <div className="loading-card">
             <div className="spinner"></div>
-            <p>Initializing...</p>
+            <h3>Setting up Orbit</h3>
+            <p>Initializing secure authentication...</p>
+            <div className="loading-dots">
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  if (isAuthenticated && userPrincipal) {
-    return (
-      <div className="auth-page">
-        <div className="auth-container">
-          <div className="auth-success">
-            <div className="success-icon">✅</div>
-            <h2>Welcome to Orbit!</h2>
-            <p>You're successfully authenticated with Internet Identity.</p>
-            <div className="user-info">
-              <strong>Principal ID:</strong> {formatPrincipal(userPrincipal)}
-            </div>
-            <div className="auth-actions">
-              <button 
-                onClick={() => navigate('/dashboard')} 
-                className="auth-btn primary"
-              >
-                Go to Dashboard
-              </button>
-              <button 
-                onClick={handleLogout} 
-                className="auth-btn secondary"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="auth-page">
@@ -155,8 +166,10 @@ function AuthPage() {
               <div className="info-icon">🔐</div>
               <h3>Secure Authentication</h3>
               <p>
-                Internet Identity provides secure, privacy-preserving authentication 
-                without passwords or personal data collection.
+                {process.env.DFX_NETWORK === "ic" 
+                  ? "Internet Identity provides secure, privacy-preserving authentication without passwords or personal data collection."
+                  : "Local development mode: Using mock authentication for testing. In production, this will use Internet Identity."
+                }
               </p>
             </div>
 
@@ -188,7 +201,10 @@ function AuthPage() {
               ) : (
                 <>
                   <span className="login-icon">🌐</span>
-                  Sign in with Internet Identity
+                  {process.env.DFX_NETWORK === "ic" 
+                    ? "Sign in with Internet Identity"
+                    : "Sign in (Local Development)"
+                  }
                 </>
               )}
             </button>

@@ -45,42 +45,67 @@ dwitter/
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - [DFX](https://internetcomputer.org/docs/current/developer-docs/setup/install/) (v0.28.0 or higher)
 
-### Installation
+### Quick Start
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd dwitter
-   ```
+**Option 1: Automated Setup (Recommended)**
+```bash
+# Clone the repository
+git clone <repository-url>
+cd dwitter
 
-2. **Install dependencies**
-   ```bash
-   cd src/dwitter_frontend
-   npm install
-   cd ../..
-   ```
+# Run the setup script
+./setup.sh
+```
 
-3. **Start local ICP replica**
-   ```bash
-   dfx start --clean --background
-   ```
+**Option 2: Manual Setup**
+```bash
+# Clone the repository
+git clone <repository-url>
+cd dwitter
 
-4. **Deploy the application**
-   ```bash
-   dfx deploy
-   ```
+# Install dependencies
+cd src/dwitter_frontend
+npm install
+cd ../..
 
-5. **Start development server** (optional)
-   ```bash
-   cd src/dwitter_frontend
-   npm start
-   ```
+# Start local ICP replica
+dfx start --clean --background
+
+# Create Internet Identity canister
+dfx canister create internet_identity
+
+# Deploy the application
+dfx deploy
+
+# Start development server
+cd src/dwitter_frontend
+npm start
+```
 
 ### Access Points
 
 - **Frontend**: http://u6s2n-gx777-77774-qaaba-cai.localhost:4943/
 - **Development Server**: http://localhost:3000 (if running)
 - **Backend Candid**: http://127.0.0.1:4943/?canisterId=uzt4z-lp777-77774-qaabq-cai&id=uxrrr-q7777-77774-qaaaq-cai
+
+### Local Development Authentication
+
+For local development, Orbit uses mock authentication to simplify the development process:
+
+- ✅ **No need to create a new identity each time**
+- ✅ **Instant authentication for development**
+- ✅ **No external dependencies**
+- ✅ **Automatic switch to Internet Identity in production**
+
+**Local Development Mode:**
+- Click "Sign in (Local Development)" to instantly authenticate
+- Uses a mock principal for testing
+- All dweet functionality works normally
+
+**Production Mode:**
+- Automatically uses Internet Identity when deployed to mainnet
+- Secure, privacy-preserving authentication
+- Real blockchain identity management
 
 ## Usage
 
