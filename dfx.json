@@ -1,0 +1,26 @@
+{
+  "canisters": {
+    "dwitter_backend": {
+      "main": "src/dwitter_backend/main.mo",
+      "type": "motoko"
+    },
+    "dwitter_frontend": {
+      "dependencies": [
+        "dwitter_backend"
+      ],
+      "source": [
+        "src/dwitter_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "dwitter_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
