@@ -64,4 +64,82 @@ actor {
     };
     #Err("Dweet not found")
   };
+
+  // Edit a dweet (only by the original author)
+  public shared({caller}) func editDweet(id: Nat, newMessage: Text) : async {#Ok: Dweet; #Err: Text} {
+    // Validate message length (max 280 characters)
+    if (Text.size(newMessage) > 280) {
+      return #Err("Message too long. Maximum 280 characters allowed.");
+    };
+    
+    // Validate message is not empty
+    if (Text.size(newMessage) == 0) {
+      return #Err("Message cannot be empty.");
+    };
+
+    // Find and update the dweet
+    var updatedDweets: [Dweet] = [];
+    var found: Bool = false;
+    
+    for (dweet in dweets.vals()) {
+      if (dweet.id == id) {
+        // Check if caller is the author
+        if (Principal.equal(dweet.author, caller)) {
+          let updatedDweet: Dweet = {
+            id = dweet.id;
+            author = dweet.author;
+            message = newMessage;
+            timestamp = dweet.timestamp; // Keep original timestamp
+          };
+          updatedDweets := Array.append(updatedDweets, [updatedDweet]);
+          found := true;
+        } else {
+          return #Err("You can only edit your own dweets.");
+        };
+      } else {
+        updatedDweets := Array.append(updatedDweets, [dweet]);
+      };
+    };
+    
+    if (found) {
+      dweets := updatedDweets;
+      // Return the updated dweet
+      for (dweet in dweets.vals()) {
+        if (dweet.id == id) {
+          return #Ok(dweet);
+        };
+      };
+      #Err("Error updating dweet")
+    } else {
+      #Err("Dweet not found")
+    };
+  };
+
+  // Delete a dweet (only by the original author)
+  public shared({caller}) func deleteDweet(id: Nat) : async {#Ok: Nat; #Err: Text} {
+    // Find and remove the dweet
+    var updatedDweets: [Dweet] = [];
+    var found: Bool = false;
+    
+    for (dweet in dweets.vals()) {
+      if (dweet.id == id) {
+        // Check if caller is the author
+        if (Principal.equal(dweet.author, caller)) {
+          found := true;
+          // Don't add this dweet to the updated array (effectively deleting it)
+        } else {
+          return #Err("You can only delete your own dweets.");
+        };
+      } else {
+        updatedDweets := Array.append(updatedDweets, [dweet]);
+      };
+    };
+    
+    if (found) {
+      dweets := updatedDweets;
+      #Ok(id)
+    } else {
+      #Err("Dweet not found")
+    };
+  };
 };

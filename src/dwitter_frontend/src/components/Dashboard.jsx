@@ -10,6 +10,8 @@ function Dashboard() {
   const [error, setError] = useState('');
   const [userPrincipal, setUserPrincipal] = useState(null);
   const [authClient, setAuthClient] = useState(null);
+  const [editingDweet, setEditingDweet] = useState(null);
+  const [editMessage, setEditMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,6 +20,7 @@ function Dashboard() {
 
   useEffect(() => {
     if (userPrincipal) {
+      console.log('Dashboard: userPrincipal set to:', userPrincipal.toString());
       fetchDweets();
     }
   }, [userPrincipal]);
@@ -31,7 +34,13 @@ function Dashboard() {
       const storedAuth = localStorage.getItem('orbit_auth');
       if (storedAuth) {
         const authData = JSON.parse(storedAuth);
-        setUserPrincipal({ toString: () => authData.principal });
+        // Create a proper principal object that matches the backend format
+        const mockPrincipal = {
+          toString: () => authData.principal,
+          toText: () => authData.principal,
+          // Add other Principal methods that might be needed
+        };
+        setUserPrincipal(mockPrincipal);
         return;
       }
       
@@ -54,7 +63,27 @@ function Dashboard() {
     try {
       setIsLoading(true);
       const fetchedDweets = await dwitter_backend.getDweets();
-      setDweets(fetchedDweets);
+      
+      // For local development, if we have a stored principal, 
+      // treat dweets with anonymous principal as our own
+      const storedAuth = localStorage.getItem('orbit_auth');
+      if (storedAuth && process.env.DFX_NETWORK !== "ic") {
+        const authData = JSON.parse(storedAuth);
+        const modifiedDweets = fetchedDweets.map(dweet => {
+          // If it's an anonymous principal (starts with 2vxsx), treat it as our own
+          if (dweet.author.toString().startsWith('2vxsx')) {
+            return {
+              ...dweet,
+              author: { toString: () => authData.principal }
+            };
+          }
+          return dweet;
+        });
+        setDweets(modifiedDweets);
+      } else {
+        setDweets(fetchedDweets);
+      }
+      
       setError('');
     } catch (err) {
       setError('Failed to fetch dweets: ' + err.message);
@@ -100,6 +129,58 @@ function Dashboard() {
     }
   };
 
+  const handleEditDweet = async (dweetId, newMessage) => {
+    try {
+      setIsLoading(true);
+      const result = await dwitter_backend.editDweet(dweetId, newMessage);
+      
+      if ('Ok' in result) {
+        setEditingDweet(null);
+        setEditMessage('');
+        await fetchDweets();
+        setError('');
+      } else {
+        setError('Failed to edit dweet: ' + result.Err);
+      }
+    } catch (err) {
+      setError('Failed to edit dweet: ' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteDweet = async (dweetId) => {
+    if (!window.confirm('Are you sure you want to delete this dweet? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const result = await dwitter_backend.deleteDweet(dweetId);
+      
+      if ('Ok' in result) {
+        await fetchDweets();
+        setError('');
+      } else {
+        setError('Failed to delete dweet: ' + result.Err);
+      }
+    } catch (err) {
+      setError('Failed to delete dweet: ' + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startEditing = (dweet) => {
+    setEditingDweet(dweet.id);
+    setEditMessage(dweet.message);
+  };
+
+  const cancelEditing = () => {
+    setEditingDweet(null);
+    setEditMessage('');
+  };
+
   const formatTimestamp = (timestamp) => {
     const date = new Date(Number(timestamp) / 1000000);
     return date.toLocaleString();
@@ -108,6 +189,22 @@ function Dashboard() {
   const formatPrincipal = (principal) => {
     const principalStr = principal.toString();
     return principalStr.slice(0, 8) + '...' + principalStr.slice(-8);
+  };
+
+  // Helper function to compare principals
+  const isOwnDweet = (dweetAuthor) => {
+    if (!userPrincipal || !dweetAuthor) return false;
+    
+    const userPrincipalStr = userPrincipal.toString();
+    const dweetAuthorStr = dweetAuthor.toString();
+    
+    console.log('Comparing principals:', {
+      userPrincipal: userPrincipalStr,
+      dweetAuthor: dweetAuthorStr,
+      match: userPrincipalStr === dweetAuthorStr
+    });
+    
+    return userPrincipalStr === dweetAuthorStr;
   };
 
   const copyPrincipalToClipboard = async () => {
@@ -247,14 +344,70 @@ function Dashboard() {
                     <span className="author">{formatPrincipal(dweet.author)}</span>
                     <span className="timestamp">{formatTimestamp(dweet.timestamp)}</span>
                   </div>
-                  <div className="dweet-content">
-                    {dweet.message}
-                  </div>
+                  
+                  {editingDweet === dweet.id ? (
+                    <div className="edit-form">
+                      <textarea
+                        value={editMessage}
+                        onChange={(e) => setEditMessage(e.target.value)}
+                        placeholder="Edit your dweet..."
+                        maxLength={280}
+                        className="edit-input"
+                        disabled={isLoading}
+                      />
+                      <div className="edit-actions">
+                        <span className="char-count">{editMessage.length}/280</span>
+                        <div className="edit-buttons">
+                          <button
+                            onClick={() => handleEditDweet(dweet.id, editMessage)}
+                            className="save-btn"
+                            disabled={isLoading || !editMessage.trim()}
+                          >
+                            {isLoading ? 'Saving...' : 'Save'}
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            className="cancel-btn"
+                            disabled={isLoading}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="dweet-content">
+                      {dweet.message}
+                    </div>
+                  )}
+                  
                   <div className="dweet-footer">
                     <span className="dweet-id">#{dweet.id.toString()}</span>
-                    {dweet.author.toString() === userPrincipal.toString() && (
-                      <span className="own-dweet">Your dweet</span>
-                    )}
+                    {(() => {
+                      const isOwn = isOwnDweet(dweet.author);
+                      console.log(`Dweet ${dweet.id}: isOwnDweet = ${isOwn}`);
+                      return isOwn ? (
+                        <div className="dweet-actions">
+                          <span className="own-dweet">Your dweet</span>
+                          <button
+                            onClick={() => startEditing(dweet)}
+                            className="action-btn edit-btn"
+                            disabled={isLoading}
+                            title="Edit dweet"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDweet(dweet.id)}
+                            className="action-btn delete-btn"
+                            disabled={isLoading}
+                            title="Delete dweet"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      ) : null;
+                    })()}
                   </div>
                 </article>
               ))}
