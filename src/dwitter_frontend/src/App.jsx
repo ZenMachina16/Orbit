@@ -8,12 +8,14 @@ import UserProfile from './components/UserProfile';
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/profile/:principalId" element={<UserProfile />} />
-      </Routes>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile/:principalId" element={<UserProfile />} />
+        </Routes>
+      </div>
     </Router>
   );
 }

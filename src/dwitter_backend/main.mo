@@ -3,8 +3,6 @@ import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import Array "mo:base/Array";
 import Nat "mo:base/Nat";
-import HashMap "mo:base/HashMap";
-import Iter "mo:base/Iter";
 
 actor {
   // Define the Dweet data structure
@@ -15,9 +13,22 @@ actor {
     timestamp: Int;
   };
 
+  // Legacy User type for migration (will be removed after migration)
+  type LegacyUser = {
+    principal: Principal;
+    username: Text;
+    displayName: Text;
+    bio: Text;
+    joinDate: Int;
+    dweetCount: Nat;
+  };
+
   // Stable storage for dweets
   private stable var dweets: [Dweet] = [];
   private stable var nextId: Nat = 0;
+
+  // Legacy stable storage for migration
+  private stable var users: [(Principal, LegacyUser)] = [];
 
   // Post a new dweet
   public shared({caller}) func postDweet(message: Text) : async {#Ok: Nat; #Err: Text} {
@@ -157,5 +168,21 @@ actor {
     
     // Return dweets in reverse chronological order (newest first)
     Array.reverse(authorDweets)
+  };
+
+  // Migration function to clear legacy user data
+  public shared({caller}) func migrateClearUsers() : async Text {
+    users := [];
+    "Migration completed: Legacy user data cleared"
+  };
+
+  // System functions for stable storage
+  system func preupgrade() {
+    // Keep the legacy users array for migration
+  };
+
+  system func postupgrade() {
+    // Migration completed, legacy data can be cleared
+    users := [];
   };
 };
