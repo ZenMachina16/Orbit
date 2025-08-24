@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthClient } from '@dfinity/auth-client';
 import { dwitter_backend } from 'declarations/dwitter_backend';
+import { Principal } from '@dfinity/principal';
 
 function Dashboard() {
   const [dweets, setDweets] = useState([]);
@@ -25,6 +26,8 @@ function Dashboard() {
       fetchDweets();
     }
   }, [userPrincipal]);
+
+
 
   const initializeAuth = async () => {
     try {
@@ -66,17 +69,18 @@ function Dashboard() {
       setIsLoading(true);
       const fetchedDweets = await dwitter_backend.getDweets();
       
-      // For local development, if we have a stored principal, 
-      // treat dweets with anonymous principal as our own
-      const storedAuth = localStorage.getItem('orbit_auth');
-      if (storedAuth && process.env.DFX_NETWORK !== "ic") {
-        const authData = JSON.parse(storedAuth);
+      // For local development, parse user IDs from messages
+      if (process.env.DFX_NETWORK !== "ic") {
         const modifiedDweets = fetchedDweets.map(dweet => {
-          // If it's an anonymous principal (starts with 2vxsx), treat it as our own
-          if (dweet.author.toString().startsWith('2vxsx')) {
+          // Check if message starts with [UserID]
+          const userIdMatch = dweet.message.match(/^\[([^\]]+)\]\s*(.*)/);
+          if (userIdMatch) {
+            const userId = userIdMatch[1];
+            const actualMessage = userIdMatch[2];
             return {
               ...dweet,
-              author: { toString: () => authData.principal }
+              message: actualMessage,
+              displayAuthor: userId
             };
           }
           return dweet;
@@ -100,7 +104,21 @@ function Dashboard() {
     try {
       setIsLoading(true);
       setError('');
-      await dwitter_backend.postDweet(newDweet);
+      
+      // For local development, use user ID function
+      if (process.env.DFX_NETWORK !== "ic") {
+        const storedAuth = localStorage.getItem('orbit_auth');
+        if (storedAuth) {
+          const authData = JSON.parse(storedAuth);
+          console.log('Using user ID:', authData.userName);
+          await dwitter_backend.postDweetWithUserId(newDweet, authData.userName);
+        } else {
+          await dwitter_backend.postDweet(newDweet);
+        }
+      } else {
+        await dwitter_backend.postDweet(newDweet);
+      }
+      
       setNewDweet('');
       fetchDweets(); // Refresh the dweets
     } catch (err) {
@@ -117,7 +135,21 @@ function Dashboard() {
     try {
       setIsLoading(true);
       setError('');
-      await dwitter_backend.editDweet(id, editMessage);
+      
+      // For local development, preserve user ID in edited message
+      if (process.env.DFX_NETWORK !== "ic") {
+        const storedAuth = localStorage.getItem('orbit_auth');
+        if (storedAuth) {
+          const authData = JSON.parse(storedAuth);
+          const messageWithUserId = `[${authData.userName}] ${editMessage}`;
+          await dwitter_backend.editDweet(id, messageWithUserId);
+        } else {
+          await dwitter_backend.editDweet(id, editMessage);
+        }
+      } else {
+        await dwitter_backend.editDweet(id, editMessage);
+      }
+      
       setEditMessage('');
       setEditingDweet(null);
       fetchDweets(); // Refresh the dweets
@@ -135,6 +167,8 @@ function Dashboard() {
     try {
       setIsLoading(true);
       setError('');
+      
+      // Use the default actor for deleting
       await dwitter_backend.deleteDweet(id);
       fetchDweets(); // Refresh the dweets
     } catch (err) {
@@ -186,6 +220,17 @@ function Dashboard() {
 
   const isOwnDweet = (dweet) => {
     if (!userPrincipal) return false;
+    
+    // For local development, check displayAuthor
+    if (process.env.DFX_NETWORK !== "ic" && dweet.displayAuthor) {
+      const storedAuth = localStorage.getItem('orbit_auth');
+      if (storedAuth) {
+        const authData = JSON.parse(storedAuth);
+        return dweet.displayAuthor === authData.userName;
+      }
+    }
+    
+    // Fallback to principal comparison
     return dweet.author.toString() === userPrincipal.toString();
   };
 
@@ -273,7 +318,9 @@ function Dashboard() {
                   <div key={dweet.id} className="dweet-card">
                     <div className="dweet-header">
                       <Link to={`/profile/${dweet.author.toString()}`} className="author-link">
-                        <span className="author-name">{formatPrincipal(dweet.author)}</span>
+                        <span className="author-name">
+                          {dweet.displayAuthor ? dweet.displayAuthor : formatPrincipal(dweet.author)}
+                        </span>
                       </Link>
                       <span className="dweet-timestamp">{formatTimestamp(dweet.timestamp)}</span>
                     </div>

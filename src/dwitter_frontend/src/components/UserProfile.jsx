@@ -13,6 +13,8 @@ function UserProfile() {
   const [editMessage, setEditMessage] = useState('');
   const navigate = useNavigate();
 
+
+
   useEffect(() => {
     checkCurrentUser();
     fetchUserDweets();
@@ -38,23 +40,7 @@ function UserProfile() {
       const principal = Principal.fromText(principalId);
       const dweets = await dwitter_backend.getDweetsByAuthor(principal);
       
-      // For local development, handle anonymous principals
-      const storedAuth = localStorage.getItem('orbit_auth');
-      if (storedAuth && process.env.DFX_NETWORK !== "ic") {
-        const authData = JSON.parse(storedAuth);
-        const modifiedDweets = dweets.map(dweet => {
-          if (dweet.author.toString().startsWith('2vxsx')) {
-            return {
-              ...dweet,
-              author: { toString: () => authData.principal }
-            };
-          }
-          return dweet;
-        });
-        setUserDweets(modifiedDweets);
-      } else {
-        setUserDweets(dweets);
-      }
+      setUserDweets(dweets);
     } catch (err) {
       console.error('Failed to fetch user dweets:', err);
       
@@ -67,16 +53,6 @@ function UserProfile() {
         const filteredDweets = allDweets.filter(dweet => {
           const dweetAuthor = dweet.author.toString();
           const targetPrincipal = principalId;
-          
-          // For local development, handle anonymous principals
-          if (process.env.DFX_NETWORK !== "ic" && dweetAuthor.startsWith('2vxsx')) {
-            const storedAuth = localStorage.getItem('orbit_auth');
-            if (storedAuth) {
-              const authData = JSON.parse(storedAuth);
-              return authData.principal === targetPrincipal;
-            }
-          }
-          
           return dweetAuthor === targetPrincipal;
         });
         
@@ -96,6 +72,8 @@ function UserProfile() {
     try {
       setIsLoading(true);
       setError('');
+      
+      // Use the default actor for editing
       await dwitter_backend.editDweet(id, editMessage);
       setEditMessage('');
       setEditingDweet(null);
@@ -114,6 +92,8 @@ function UserProfile() {
     try {
       setIsLoading(true);
       setError('');
+      
+      // Use the default actor for deleting
       await dwitter_backend.deleteDweet(id);
       fetchUserDweets(); // Refresh the dweets
     } catch (err) {

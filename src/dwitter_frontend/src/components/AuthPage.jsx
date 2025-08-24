@@ -16,31 +16,31 @@ function AuthPage() {
     {
       id: 1,
       name: "Alice",
-      principal: "dtvkx-nqfcs-gvi6k-g7ti5-rwaqi-dqhdd-mg6tw-nye7j-2fevm-htgnp-nqe",
+      principal: "2vxsx-faeaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaa",
       color: "#667eea"
     },
     {
       id: 2,
       name: "Bob",
-      principal: "b7p2t-5xaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaa",
+      principal: "2vxsx-faeaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aab",
       color: "#764ba2"
     },
     {
       id: 3,
       name: "Charlie",
-      principal: "c8q3u-6yaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaa",
+      principal: "2vxsx-faeaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aac",
       color: "#f093fb"
     },
     {
       id: 4,
       name: "Diana",
-      principal: "d9r4v-7zaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaa",
+      principal: "2vxsx-faeaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aad",
       color: "#4facfe"
     },
     {
       id: 5,
       name: "Eve",
-      principal: "e0s5w-8aaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaa",
+      principal: "2vxsx-faeaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aaaaa-aae",
       color: "#43e97b"
     }
   ];
@@ -163,56 +163,67 @@ function AuthPage() {
   if (showUserSelection) {
     return (
       <div className="auth-page">
-        <nav className="navbar">
-          <div className="nav-container">
-            <div className="nav-logo">
-              <h2>Orbit</h2>
+        {/* Professional Header */}
+        <header className="auth-header">
+          <div className="auth-header-container">
+            <div className="auth-header-left">
+              <Link to="/" className="auth-logo">
+                <span className="auth-logo-icon">🚀</span>
+                <span className="auth-logo-text">Orbit</span>
+              </Link>
             </div>
-            <button 
-              onClick={() => setShowUserSelection(false)}
-              className="nav-btn secondary"
-            >
-              Back to Login
-            </button>
+            <div className="auth-header-right">
+              <Link to="/" className="auth-nav-link">Home</Link>
+              <Link to="/dashboard" className="auth-nav-link">Dashboard</Link>
+              <button 
+                onClick={() => setShowUserSelection(false)}
+                className="auth-back-btn"
+              >
+                ← Back
+              </button>
+            </div>
           </div>
-        </nav>
+        </header>
 
-        <div className="auth-container">
-          <div className="auth-card">
-            <div className="auth-header">
-              <h1>Choose Your Identity</h1>
-              <p>Select a test user to simulate multi-user environment</p>
-            </div>
-
-            <div className="user-selection">
-              <div className="user-grid">
-                {testUsers.map((user) => (
-                  <div 
-                    key={user.id}
-                    className="user-card"
-                    onClick={() => handleUserSelection(user)}
-                    style={{ borderColor: user.color }}
-                  >
-                    <div 
-                      className="user-avatar"
-                      style={{ backgroundColor: user.color }}
-                    >
-                      {user.name.charAt(0)}
-                    </div>
-                    <div className="user-info">
-                      <h3>{user.name}</h3>
-                      <p className="user-principal">{formatPrincipal(user.principal)}</p>
-                    </div>
-                    <div className="user-select-arrow">→</div>
-                  </div>
-                ))}
+        <div className="auth-main">
+          <div className="auth-container">
+            <div className="auth-card">
+              <div className="auth-card-header">
+                <div className="auth-card-icon">👥</div>
+                <h1>Choose Your Identity</h1>
+                <p>Select a test user to simulate multi-user environment</p>
               </div>
-              
-              <div className="user-selection-info">
-                <p>
-                  <strong>Multi-User Testing:</strong> Each user has a unique Principal ID. 
-                  You can switch between users to test interactions between different identities.
-                </p>
+
+              <div className="user-selection">
+                <div className="user-grid">
+                  {testUsers.map((user) => (
+                    <div 
+                      key={user.id}
+                      className="user-card"
+                      onClick={() => handleUserSelection(user)}
+                      style={{ borderColor: user.color }}
+                    >
+                      <div 
+                        className="user-avatar"
+                        style={{ backgroundColor: user.color }}
+                      >
+                        {user.name.charAt(0)}
+                      </div>
+                      <div className="user-info">
+                        <h3>{user.name}</h3>
+                        <p className="user-principal">{formatPrincipal(user.principal)}</p>
+                      </div>
+                      <div className="user-select-arrow">→</div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="user-selection-info">
+                  <p>
+                    <strong>Multi-User Testing:</strong> Each user has a unique Principal ID. 
+                    You can switch between users to test interactions between different identities.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -225,17 +236,10 @@ function AuthPage() {
   if (isLoading) {
     return (
       <div className="auth-page">
-        <div className="auth-container">
-          <div className="loading-card">
-            <div className="spinner"></div>
-            <h3>Setting up Orbit</h3>
-            <p>Initializing secure authentication...</p>
-            <div className="loading-dots">
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
-            </div>
-          </div>
+        <div className="auth-loading">
+          <div className="auth-loading-spinner"></div>
+          <h2>Setting up Orbit</h2>
+          <p>Initializing secure authentication...</p>
         </div>
       </div>
     );
@@ -243,88 +247,118 @@ function AuthPage() {
 
   return (
     <div className="auth-page">
-      <nav className="navbar">
-        <div className="nav-container">
-          <div className="nav-logo">
-            <h2>Orbit</h2>
+      {/* Professional Header */}
+      <header className="auth-header">
+        <div className="auth-header-container">
+          <div className="auth-header-left">
+            <Link to="/" className="auth-logo">
+              <span className="auth-logo-icon">🚀</span>
+              <span className="auth-logo-text">Orbit</span>
+            </Link>
           </div>
-          <Link to="/" className="nav-btn secondary">Back to Home</Link>
+          <div className="auth-header-right">
+            <Link to="/" className="auth-nav-link">Home</Link>
+            <Link to="/dashboard" className="auth-nav-link">Dashboard</Link>
+          </div>
         </div>
-      </nav>
+      </header>
 
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <h1>Welcome to Orbit</h1>
-            <p>Sign in with Internet Identity to start posting dweets</p>
-          </div>
-
-          <div className="auth-content">
-            <div className="auth-info">
-              <div className="info-icon">🔐</div>
-              <h3>Secure Authentication</h3>
-              <p>
-                {process.env.DFX_NETWORK === "ic" 
-                  ? "Internet Identity provides secure, privacy-preserving authentication without passwords or personal data collection."
-                  : "Local development mode: Test with multiple users to simulate a real multi-user environment."
-                }
-              </p>
+      <div className="auth-main">
+        <div className="auth-container">
+          <div className="auth-card">
+            <div className="auth-card-header">
+              <div className="auth-card-icon">🔐</div>
+              <h1>Welcome to Orbit</h1>
+              <p>Sign in to join the global town square</p>
             </div>
 
-            <div className="auth-benefits">
-              <div className="benefit">
-                <span className="benefit-icon">✓</span>
-                <span>No passwords required</span>
-              </div>
-              <div className="benefit">
-                <span className="benefit-icon">✓</span>
-                <span>Complete privacy</span>
-              </div>
-              <div className="benefit">
-                <span className="benefit-icon">✓</span>
-                <span>Blockchain-native identity</span>
-              </div>
-              {process.env.DFX_NETWORK !== "ic" && (
-                <div className="benefit">
-                  <span className="benefit-icon">✓</span>
-                  <span>Multi-user testing</span>
+            <div className="auth-content">
+              <div className="auth-features">
+                <div className="auth-feature">
+                  <div className="auth-feature-icon">🌐</div>
+                  <div className="auth-feature-content">
+                    <h3>Decentralized Identity</h3>
+                    <p>
+                      {process.env.DFX_NETWORK === "ic" 
+                        ? "Secure, privacy-preserving authentication without passwords or personal data collection."
+                        : "Test with multiple users to simulate a real multi-user environment."
+                      }
+                    </p>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <button 
-              onClick={handleLogin}
-              disabled={isLoading}
-              className="login-btn"
-            >
-              {isLoading ? (
-                <>
-                  <div className="spinner-small"></div>
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <span className="login-icon">🌐</span>
-                  {process.env.DFX_NETWORK === "ic" 
-                    ? "Sign in with Internet Identity"
-                    : "Choose Test User"
-                  }
-                </>
-              )}
-            </button>
+                <div className="auth-feature">
+                  <div className="auth-feature-icon">💬</div>
+                  <div className="auth-feature-content">
+                    <h3>Global Conversation</h3>
+                    <p>Join the single, shared timeline where everyone sees the same unfiltered conversation.</p>
+                  </div>
+                </div>
 
-            <div className="auth-footer">
-              <p>
-                Don't have an Internet Identity?{' '}
-                <a 
-                  href="https://identity.ic0.app/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="link"
-                >
-                  Create one here
-                </a>
-              </p>
+                <div className="auth-feature">
+                  <div className="auth-feature-icon">🛡️</div>
+                  <div className="auth-feature-content">
+                    <h3>Privacy First</h3>
+                    <p>Your Principal ID is your anonymous blockchain identity - no personal data required.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="auth-benefits">
+                <div className="auth-benefit">
+                  <span className="auth-benefit-icon">✓</span>
+                  <span>No passwords required</span>
+                </div>
+                <div className="auth-benefit">
+                  <span className="auth-benefit-icon">✓</span>
+                  <span>Complete privacy</span>
+                </div>
+                <div className="auth-benefit">
+                  <span className="auth-benefit-icon">✓</span>
+                  <span>Blockchain-native identity</span>
+                </div>
+                {process.env.DFX_NETWORK !== "ic" && (
+                  <div className="auth-benefit">
+                    <span className="auth-benefit-icon">✓</span>
+                    <span>Multi-user testing</span>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                onClick={handleLogin}
+                disabled={isLoading}
+                className="auth-login-btn"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="auth-spinner"></div>
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <span className="auth-login-icon">🌐</span>
+                    {process.env.DFX_NETWORK === "ic" 
+                      ? "Sign in with Internet Identity"
+                      : "Choose Test User"
+                    }
+                  </>
+                )}
+              </button>
+
+              <div className="auth-footer">
+                <p>
+                  Don't have an Internet Identity?{' '}
+                  <a 
+                    href="https://identity.ic0.app/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="auth-link"
+                  >
+                    Create one here
+                  </a>
+                </p>
+              </div>
             </div>
           </div>
         </div>

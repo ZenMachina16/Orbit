@@ -57,6 +57,39 @@ actor {
     #Ok(newDweet.id)
   };
 
+  // Post a dweet with user ID (for local development)
+  public shared({caller}) func postDweetWithUserId(message: Text, userId: Text) : async {#Ok: Nat; #Err: Text} {
+    // Validate message length (max 280 characters)
+    if (Text.size(message) > 280) {
+      return #Err("Message too long. Maximum 280 characters allowed.");
+    };
+    
+    // Validate message is not empty
+    if (Text.size(message) == 0) {
+      return #Err("Message cannot be empty.");
+    };
+
+    // Create new dweet with user ID embedded in message for local development
+    let messageWithUserId = if (Text.size(userId) > 0) {
+      "[" # userId # "] " # message
+    } else {
+      message
+    };
+
+    let newDweet: Dweet = {
+      id = nextId;
+      author = caller;
+      message = messageWithUserId;
+      timestamp = Time.now();
+    };
+
+    // Add to storage
+    dweets := Array.append(dweets, [newDweet]);
+    nextId := nextId + 1;
+
+    #Ok(newDweet.id)
+  };
+
   // Get all dweets (reverse chronological order)
   public query func getDweets() : async [Dweet] {
     // Return dweets in reverse chronological order (newest first)
