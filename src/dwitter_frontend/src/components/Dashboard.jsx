@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AuthClient } from '@dfinity/auth-client';
 import { dwitter_backend } from 'declarations/dwitter_backend';
 
@@ -341,7 +341,21 @@ function Dashboard() {
               {dweets.map((dweet) => (
                 <article key={dweet.id.toString()} className="dweet-card">
                   <div className="dweet-header">
-                    <span className="author">{formatPrincipal(dweet.author)}</span>
+                    <Link 
+                      to={`/profile/${(() => {
+                        // For local development, if this is an anonymous principal and we have stored auth,
+                        // use the stored principal for the link
+                        const storedAuth = localStorage.getItem('orbit_auth');
+                        if (storedAuth && process.env.DFX_NETWORK !== "ic" && dweet.author.toString().startsWith('2vxsx')) {
+                          const authData = JSON.parse(storedAuth);
+                          return authData.principal;
+                        }
+                        return dweet.author.toString();
+                      })()}`} 
+                      className="author-link"
+                    >
+                      {formatPrincipal(dweet.author)}
+                    </Link>
                     <span className="timestamp">{formatTimestamp(dweet.timestamp)}</span>
                   </div>
                   

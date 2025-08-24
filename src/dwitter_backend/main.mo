@@ -3,6 +3,8 @@ import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import Array "mo:base/Array";
 import Nat "mo:base/Nat";
+import HashMap "mo:base/HashMap";
+import Iter "mo:base/Iter";
 
 actor {
   // Define the Dweet data structure
@@ -141,5 +143,19 @@ actor {
     } else {
       #Err("Dweet not found")
     };
+  };
+
+  // Get dweets by a specific author
+  public query func getDweetsByAuthor(author: Principal) : async [Dweet] {
+    var authorDweets: [Dweet] = [];
+    
+    for (dweet in dweets.vals()) {
+      if (Principal.equal(dweet.author, author)) {
+        authorDweets := Array.append(authorDweets, [dweet]);
+      };
+    };
+    
+    // Return dweets in reverse chronological order (newest first)
+    Array.reverse(authorDweets)
   };
 };
